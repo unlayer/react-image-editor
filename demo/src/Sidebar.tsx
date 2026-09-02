@@ -28,6 +28,8 @@ interface SidebarProps {
   onThemeChange(theme: 'light' | 'dark'): void;
   locale: UnlayerLocale;
   onLocaleChange(locale: UnlayerLocale): void;
+  dock: 'left' | 'right';
+  onDockChange(dock: 'left' | 'right'): void;
   tools: Record<ToolName, boolean>;
   onToolToggle(tool: ToolName): void;
   onChangeImage(): void;
@@ -91,6 +93,22 @@ export default function Sidebar(props: SidebarProps) {
                 {locale.label}
               </option>
             ))}
+          </select>
+        </label>
+      </section>
+
+      <section className="section">
+        <h2 className="section-label">Dock (remounts editor)</h2>
+        <label className="field">
+          Tool rail
+          <select
+            value={props.dock}
+            onChange={(event) =>
+              props.onDockChange(event.target.value as 'left' | 'right')
+            }
+          >
+            <option value="left">Left</option>
+            <option value="right">Right</option>
           </select>
         </label>
       </section>

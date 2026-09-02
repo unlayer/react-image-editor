@@ -28,6 +28,7 @@ export default function App() {
   const [image, setImage] = useState(SAMPLE_IMAGES[0]);
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
   const [locale, setLocale] = useState<UnlayerLocale>('en');
+  const [dock, setDock] = useState<'left' | 'right'>('right');
   const [tools, setTools] =
     useState<Record<ToolName, boolean>>(allToolsEnabled);
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -88,6 +89,11 @@ export default function App() {
     }
   };
 
+  const changeDock = (next: 'left' | 'right') => {
+    setDock(next);
+    setStatus(`Dock "${next}" (remount)`);
+  };
+
   const toggleTool = (tool: ToolName) => {
     setTools((previous) => ({ ...previous, [tool]: !previous[tool] }));
     setStatus(`Tool "${tool}" toggled (remount)`);
@@ -115,6 +121,8 @@ export default function App() {
             onThemeChange={setTheme}
             locale={locale}
             onLocaleChange={setLocale}
+            dock={dock}
+            onDockChange={changeDock}
             tools={tools}
             onToolToggle={toggleTool}
             onChangeImage={nextImage}
@@ -131,7 +139,7 @@ export default function App() {
             options={{
               theme,
               locale,
-              features: { imageEditor: { tools } },
+              features: { imageEditor: { dock, tools } },
             }}
             onLoad={() => setStatus('Editor ready')}
             onSave={(result) => {
