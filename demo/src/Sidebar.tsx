@@ -100,7 +100,7 @@ export default function Sidebar(props: SidebarProps) {
       <section className="section">
         <h2 className="section-label">Dock (remounts editor)</h2>
         <label className="field">
-          Tool rail
+          Toolbar position
           <select
             value={props.dock}
             onChange={(event) =>
