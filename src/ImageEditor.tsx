@@ -188,6 +188,10 @@ function ImageEditorInner(
     } catch (error) {
       fail(error);
     }
+    // updatableKey is a stable digest of theme/locale/translations, so
+    // listing them as well would re-run this on every unrelated identity
+    // change of `translations` without changing what gets applied.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editor, updatableKey]);
 
   return (
