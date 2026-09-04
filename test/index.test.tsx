@@ -361,6 +361,73 @@ it('applies minHeight and style to the container', async () => {
   );
 });
 
+it('shows the placeholder until the editor mounts, then removes it', async () => {
+  const created = defer<ImageEditorInstance>();
+  createEditor.mockReturnValueOnce(created.promise);
+
+  render(<ImageEditor image="img-a" placeholder={<p>Loading…</p>} />);
+
+  // Visible for the whole embed load + createEditor round trip.
+  expect(document.body.textContent).toContain('Loading…');
+
+  await act(async () => {
+    created.resolve(mockInstance as unknown as ImageEditorInstance);
+  });
+
+  expect(document.body.textContent).not.toContain('Loading…');
+});
+
+it('renders no placeholder element when the prop is absent', async () => {
+  const { container } = render(<ImageEditor image="img-a" />);
+  await flush();
+
+  const wrapper = container.firstElementChild as HTMLElement;
+  // Just the mount container — no overlay, and no positioning added.
+  expect(wrapper.children).toHaveLength(1);
+  expect(wrapper.style.position).toBe('');
+});
+
+it('keeps the placeholder visible when the mount fails', async () => {
+  createEditor.mockRejectedValueOnce(new Error('bundle 404'));
+
+  render(
+    <ImageEditor
+      image="img-a"
+      placeholder={<p>Loading…</p>}
+      onError={vi.fn()}
+    />
+  );
+  await flush();
+
+  // A failed mount must not leave a blank box behind.
+  expect(document.body.textContent).toContain('Loading…');
+});
+
+it('brings the placeholder back while a remount is in flight', async () => {
+  const { rerender } = render(
+    <ImageEditor image="img-a" placeholder={<p>Loading…</p>} />
+  );
+  await flush();
+  expect(document.body.textContent).not.toContain('Loading…');
+
+  const second = defer<ImageEditorInstance>();
+  createEditor.mockReturnValueOnce(second.promise);
+  rerender(
+    <ImageEditor
+      image="img-a"
+      placeholder={<p>Loading…</p>}
+      options={{ projectId: 1 }}
+    />
+  );
+
+  expect(document.body.textContent).toContain('Loading…');
+
+  await act(async () => {
+    second.resolve(makeInstance() as unknown as ImageEditorInstance);
+  });
+  expect(document.body.textContent).not.toContain('Loading…');
+});
+
 it('passes onCancel and onLoadError through to the editor', async () => {
   const onCancel = vi.fn();
   const onLoadError = vi.fn();

@@ -13,7 +13,14 @@ function ImageEditorInner(
   props: ImageEditorProps,
   ref: React.Ref<ImageEditorRef>
 ) {
-  const { image, options = {}, scriptUrl, minHeight = 500, style = {} } = props;
+  const {
+    image,
+    options = {},
+    scriptUrl,
+    minHeight = 500,
+    style = {},
+    placeholder,
+  } = props;
 
   const [editor, setEditor] = useState<ImageEditorInstance | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -190,15 +197,35 @@ function ImageEditorInner(
     }
   }, [editor, updatableKey]);
 
+  // Rendered as an overlay sibling rather than a child of the mount
+  // container: the embed owns that container's DOM, and React must not
+  // reconcile children in and out from under it.
+  const showPlaceholder = placeholder !== undefined && editor === null;
+
   return (
     <div
       style={{
         flex: 1,
         display: 'flex',
         minHeight: minHeight,
+        // Only when needed, so existing layouts are untouched.
+        ...(showPlaceholder ? { position: 'relative' } : null),
       }}
     >
       <div id={editorId} ref={containerRef} style={{ ...style, flex: 1 }} />
+      {showPlaceholder && (
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          {placeholder}
+        </div>
+      )}
     </div>
   );
 }

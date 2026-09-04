@@ -1,4 +1,4 @@
-import { CSSProperties } from 'react';
+import { CSSProperties, ReactNode } from 'react';
 
 import type {
   Features,
@@ -103,6 +103,13 @@ export interface ImageEditorProps {
   minHeight?: number | string;
   /** Styles applied to the container div. */
   style?: CSSProperties;
+  /**
+   * Rendered centred over the container until the editor is mounted — a
+   * spinner or skeleton for the embed's cold-cache load. Stays visible if
+   * the mount fails, so a blank box is never the end state; pair it with
+   * `onError` to swap in a failure message.
+   */
+  placeholder?: ReactNode;
   /**
    * Override the embed script URL (e.g. to pin an environment). One embed
    * per page: the first loader to run installs window.ImageEditor and wins
