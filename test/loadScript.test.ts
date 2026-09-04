@@ -192,3 +192,40 @@ it('resetLoader removes the global, the tag, and the cached promise', async () =
   fire(scriptTags()[0], 'load');
   await retry;
 });
+
+it('prefetches the bundle when the host page already installed the global', async () => {
+  // Without this the first createEditor on a host-injected page pays a full
+  // extra round trip that the injected path avoids.
+  const embed = mockEmbed();
+  window.ImageEditor = embed;
+
+  await loadScript();
+
+  expect(embed.load).toHaveBeenCalledTimes(1);
+  expect(scriptTags()).toHaveLength(0);
+});
+
+it('swallows a prefetch failure on the already-installed path', async () => {
+  const embed = mockEmbed();
+  vi.mocked(embed.load).mockRejectedValueOnce(new Error('bundle 404'));
+  window.ImageEditor = embed;
+
+  await expect(loadScript()).resolves.toBeUndefined();
+});
+
+it('accepts a custom reused-tag timeout', async () => {
+  vi.useFakeTimers();
+  try {
+    const hostTag = document.createElement('script');
+    hostTag.src = 'https://cdn.unlayer.com/image-editor/embed.js';
+    document.head.appendChild(hostTag);
+
+    const rejection = expect(
+      loadScript('https://cdn.unlayer.com/image-editor/embed.js', 5_000)
+    ).rejects.toThrow(/Timed out/);
+    vi.advanceTimersByTime(5_000);
+    await rejection;
+  } finally {
+    vi.useRealTimers();
+  }
+});

@@ -3,7 +3,7 @@ const defaultScriptUrl = 'https://cdn.unlayer.com/image-editor/embed.js';
 // When reusing a host-injected tag we cannot know whether it already fired
 // `error` (a dead tag never re-fires), so the wait is bounded instead of
 // letting the promise hang forever.
-const REUSED_TAG_TIMEOUT_MS = 30_000;
+export const REUSED_TAG_TIMEOUT_MS = 30_000;
 
 interface TrackedLoad {
   promise: Promise<void>;
@@ -32,12 +32,18 @@ const findScriptTag = (scriptUrl: string): HTMLScriptElement | null => {
  * host-injected tag, if it doesn't become ready within a bounded wait).
  */
 export const loadScript = (
-  scriptUrl: string = defaultScriptUrl
+  scriptUrl: string = defaultScriptUrl,
+  reusedTagTimeoutMs: number = REUSED_TAG_TIMEOUT_MS
 ): Promise<void> => {
   // The embed loader assigns window.ImageEditor synchronously while
   // embed.js evaluates, so its presence means the script already ran
   // (whether we injected it or the host page did).
   if (window.ImageEditor) {
+    // Prefetch the versioned bundle, exactly as the load listener below
+    // does. Without this a page that injected embed.js itself pays a full
+    // extra round trip on the first createEditor. The embed loader caches
+    // its own promise, so a duplicate call is a no-op.
+    window.ImageEditor.load().catch(() => {});
     return Promise.resolve();
   }
 
@@ -99,7 +105,7 @@ export const loadScript = (
             `Timed out waiting for an existing embed script tag: ${scriptUrl}`
           )
         );
-      }, REUSED_TAG_TIMEOUT_MS);
+      }, reusedTagTimeoutMs);
     } else {
       tag.src = scriptUrl;
       document.head.appendChild(tag);
