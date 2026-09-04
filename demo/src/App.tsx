@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 import ImageEditor, {
   ImageEditorRef,
@@ -16,6 +16,10 @@ const SAMPLE_IMAGES = [
 
 const MAX_UPLOAD_BYTES = 20 * 1024 * 1024;
 
+// Matches the @media breakpoint in styles.css, where the sidebar becomes an
+// overlay. Starting it open at these widths hides the editor behind it.
+const WIDE_VIEWPORT = '(min-width: 768px)';
+
 const allToolsEnabled = () =>
   Object.fromEntries(TOOL_NAMES.map((tool) => [tool, true])) as Record<
     ToolName,
@@ -30,9 +34,18 @@ export default function App() {
   const [locale, setLocale] = useState<UnlayerLocale>('en');
   const [tools, setTools] =
     useState<Record<ToolName, boolean>>(allToolsEnabled);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(
+    () => window.matchMedia(WIDE_VIEWPORT).matches
+  );
   const [saved, setSaved] = useState<ImageEditorSaveResult | null>(null);
   const [status, setStatus] = useState('Loading editor…');
+
+  // Drive the page chrome off the same theme the editor gets, so the
+  // control demonstrates the real thing rather than a dark shell that never
+  // changes.
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+  }, [theme]);
 
   // Invalidates in-flight file reads so a slow read can never overwrite a
   // newer image choice (upload or sample) after the fact.
@@ -109,6 +122,15 @@ export default function App() {
       </header>
 
       <div className="body">
+        {sidebarOpen && (
+          <button
+            type="button"
+            className="backdrop"
+            aria-label="Close controls"
+            onClick={() => setSidebarOpen(false)}
+          />
+        )}
+
         {sidebarOpen && (
           <Sidebar
             theme={theme}
