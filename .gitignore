@@ -5,3 +5,12 @@ node_modules
 .history
 dist
 /coverage
+
+# npm is the supported package manager (CI runs `npm ci` and the
+# package-lock.json files are committed). Keep a stray lockfile from another
+# resolver out of commits — two lockfiles in the tree make `npm ci` fail in
+# confusing ways for the next person.
+bun.lock
+bun.lockb
+pnpm-lock.yaml
+yarn.lock

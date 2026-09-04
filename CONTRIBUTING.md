@@ -6,6 +6,7 @@
 
 ## Installation
 
+- npm is the supported package manager. CI runs `npm ci`, and both `package-lock.json` files are committed — other resolvers are gitignored so a stray lockfile cannot be committed by accident.
 - Running `npm install` in the component's root directory will install everything you need for development.
 - Running `npm install` in the `demo` directory will install everything you need to run the demo app locally.
 
