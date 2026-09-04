@@ -2,7 +2,7 @@
 
 ## Prerequisites
 
-[Node.js](https://nodejs.org/) >= v18 must be installed.
+[Node.js](https://nodejs.org/) >= v20 must be installed. CI tests on Node 20, 22 and 24.
 
 ## Installation
 
