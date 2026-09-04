@@ -4,6 +4,9 @@ import type { UnlayerLocale } from '@unlayer/types';
 
 export const TOOL_NAMES = [
   'crop',
+  // Configured through features.imageEditor.tools like any other tool, but
+  // it is the rounded-corners control inside Crop rather than its own tab.
+  'corners',
   'resize',
   'filter',
   'draw',
@@ -28,6 +31,11 @@ interface SidebarProps {
   onThemeChange(theme: 'light' | 'dark'): void;
   locale: UnlayerLocale;
   onLocaleChange(locale: UnlayerLocale): void;
+  dock: 'left' | 'right';
+  onDockChange(dock: 'left' | 'right'): void;
+  aiAvailable: boolean;
+  ai: boolean;
+  onAiChange(enabled: boolean): void;
   tools: Record<ToolName, boolean>;
   onToolToggle(tool: ToolName): void;
   onChangeImage(): void;
@@ -93,6 +101,41 @@ export default function Sidebar(props: SidebarProps) {
             ))}
           </select>
         </label>
+      </section>
+
+      <section className="section">
+        <h2 className="section-label">Layout (remounts editor)</h2>
+        <label className="field">
+          Tool rail
+          <select
+            value={props.dock}
+            onChange={(event) =>
+              props.onDockChange(event.target.value as 'left' | 'right')
+            }
+          >
+            <option value="left">Left</option>
+            <option value="right">Right</option>
+          </select>
+        </label>
+      </section>
+
+      <section className="section">
+        <h2 className="section-label">AI Assistant</h2>
+        {props.aiAvailable ? (
+          <label className="tool-toggle">
+            <input
+              type="checkbox"
+              checked={props.ai}
+              onChange={(event) => props.onAiChange(event.target.checked)}
+            />
+            Enable AI Assistant
+          </label>
+        ) : (
+          <p className="hint">
+            Set <code>VITE_UNLAYER_PROJECT_ID</code> in <code>demo/.env</code>{' '}
+            to try the AI Assistant. See <code>demo/.env.example</code>.
+          </p>
+        )}
       </section>
 
       <section className="section">

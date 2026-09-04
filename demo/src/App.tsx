@@ -16,6 +16,15 @@ const SAMPLE_IMAGES = [
 
 const MAX_UPLOAD_BYTES = 20 * 1024 * 1024;
 
+// The AI Assistant needs a projectId with the feature enabled, so the demo
+// only offers it when one is configured. See demo/.env.example.
+const PROJECT_ID = Number(import.meta.env.VITE_UNLAYER_PROJECT_ID) || undefined;
+
+// Demonstrates features.imageEditor.tools.<tool>.icon. Raw <svg> markup is
+// the form that works today; see #64 for the Font Awesome name form.
+const CUSTOM_TEXT_ICON =
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7V5h16v2M12 5v14M9 19h6" /></svg>';
+
 const allToolsEnabled = () =>
   Object.fromEntries(TOOL_NAMES.map((tool) => [tool, true])) as Record<
     ToolName,
@@ -31,6 +40,8 @@ export default function App() {
   const [tools, setTools] =
     useState<Record<ToolName, boolean>>(allToolsEnabled);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [dock, setDock] = useState<'left' | 'right'>('right');
+  const [ai, setAi] = useState(false);
   const [saved, setSaved] = useState<ImageEditorSaveResult | null>(null);
   const [status, setStatus] = useState('Loading editor…');
 
@@ -80,12 +91,14 @@ export default function App() {
     setStatus(editor.hasChanges() ? 'Unsaved changes' : 'No unsaved changes');
   };
 
-  const snapshot = () => {
+  const snapshot = async () => {
     const dataUrl = editorRef.current?.editor?.getImage();
-    if (dataUrl) {
-      setSaved({ dataUrl, blob: new Blob() });
-      setStatus('Snapshot taken via getImage()');
-    }
+    if (!dataUrl) return;
+    // Build the real blob rather than an empty one: this object is shaped
+    // like an ImageEditorSaveResult, so it should not lie about `blob`.
+    const blob = await (await fetch(dataUrl)).blob();
+    setSaved({ dataUrl, blob });
+    setStatus(`Snapshot taken via getImage() (${blob.size} bytes)`);
   };
 
   const toggleTool = (tool: ToolName) => {
@@ -117,6 +130,19 @@ export default function App() {
             onLocaleChange={setLocale}
             tools={tools}
             onToolToggle={toggleTool}
+            dock={dock}
+            onDockChange={(next) => {
+              setDock(next);
+              setStatus('Tool rail moved (remount)');
+            }}
+            aiAvailable={PROJECT_ID !== undefined}
+            ai={ai}
+            onAiChange={(enabled) => {
+              setAi(enabled);
+              setStatus(
+                `AI Assistant ${enabled ? 'enabled' : 'disabled'} (remount)`
+              );
+            }}
             onChangeImage={nextImage}
             onUploadImage={uploadImage}
             onCheckChanges={checkChanges}
@@ -131,7 +157,24 @@ export default function App() {
             options={{
               theme,
               locale,
-              features: { imageEditor: { tools } },
+              projectId: PROJECT_ID,
+              features: {
+                ai: { enabled: ai, assistant: ai },
+                imageEditor: {
+                  dock,
+                  tools: {
+                    ...tools,
+                    // A tool entry can also be an object, which is how a
+                    // custom icon is supplied. Raw <svg> markup, not a Font
+                    // Awesome name — the name form is silently ignored
+                    // (see #64).
+                    text: {
+                      enabled: tools.text,
+                      icon: CUSTOM_TEXT_ICON,
+                    },
+                  },
+                },
+              },
             }}
             onLoad={() => setStatus('Editor ready')}
             onSave={(result) => {

@@ -192,3 +192,17 @@ body,
   margin-top: 8px;
   border-radius: 4px;
 }
+
+.hint {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #8f96a3;
+}
+
+.hint code {
+  font-size: 11px;
+  padding: 1px 4px;
+  border-radius: 4px;
+  background: #232732;
+}
