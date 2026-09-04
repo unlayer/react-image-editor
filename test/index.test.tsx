@@ -9,12 +9,20 @@ import ImageEditor, {
   MountOptions,
 } from '../src';
 import { loadScript, resetLoader } from '../src/loadScript';
+import { stableKey } from '../src/stableKey';
 
 // Resolve the embed script immediately instead of hitting the network.
 vi.mock('../src/loadScript', () => ({
   loadScript: vi.fn(() => Promise.resolve()),
   resetLoader: vi.fn(),
 }));
+
+// Spy only — the real implementation still runs, so behaviour is unchanged.
+// Lets a test assert that the option keys are actually memoised.
+vi.mock('../src/stableKey', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../src/stableKey')>();
+  return { stableKey: vi.fn(actual.stableKey) };
+});
 
 interface Deferred<T> {
   promise: Promise<T>;
@@ -61,6 +69,7 @@ beforeEach(() => {
   vi.mocked(loadScript).mockImplementation(() => Promise.resolve());
   vi.mocked(resetLoader).mockClear();
 
+  vi.mocked(stableKey).mockClear();
   mockInstance = makeInstance();
   createEditor = vi.fn(async () => mockInstance);
   window.ImageEditor = {
@@ -186,6 +195,67 @@ it('does not remount when the tools config is deep-equal but not reference-equal
 
   expect(mockInstance.destroy).not.toHaveBeenCalled();
   expect(createEditor).toHaveBeenCalledTimes(1);
+});
+
+it('does not remount when the same options are written in a different key order', async () => {
+  const { rerender } = render(
+    <ImageEditor image="img-a" options={{ projectId: 1234, offline: false }} />
+  );
+  await flush();
+
+  // Same configuration, keys in the other order — the common case when
+  // options are assembled conditionally rather than as one fixed literal.
+  rerender(
+    <ImageEditor image="img-a" options={{ offline: false, projectId: 1234 }} />
+  );
+  await flush();
+
+  expect(mockInstance.destroy).not.toHaveBeenCalled();
+  expect(createEditor).toHaveBeenCalledTimes(1);
+});
+
+it('does not re-serialize options when the object identity is stable', async () => {
+  const options: ImageEditorOptions = { projectId: 1234, offline: false };
+  const { rerender } = render(<ImageEditor image="img-a" options={options} />);
+  await flush();
+
+  const afterMount = vi.mocked(stableKey).mock.calls.length;
+  expect(afterMount).toBeGreaterThan(0);
+
+  // Same object, three more renders: the memos should absorb all of them.
+  rerender(<ImageEditor image="img-a" options={options} />);
+  rerender(<ImageEditor image="img-b" options={options} />);
+  rerender(<ImageEditor image="img-c" options={options} />);
+  await flush();
+
+  expect(vi.mocked(stableKey).mock.calls.length).toBe(afterMount);
+});
+
+it('re-serializes when a fresh options object arrives', async () => {
+  const { rerender } = render(
+    <ImageEditor image="img-a" options={{ projectId: 1234 }} />
+  );
+  await flush();
+  const afterMount = vi.mocked(stableKey).mock.calls.length;
+
+  rerender(<ImageEditor image="img-a" options={{ projectId: 1234 }} />);
+
+  expect(vi.mocked(stableKey).mock.calls.length).toBeGreaterThan(afterMount);
+  // ...and still resolves to the same key, so no remount.
+  expect(createEditor).toHaveBeenCalledTimes(1);
+});
+
+it('does not serialize a fresh empty default on every render', async () => {
+  const { rerender } = render(<ImageEditor image="img-a" />);
+  await flush();
+  const afterMount = vi.mocked(stableKey).mock.calls.length;
+
+  rerender(<ImageEditor image="img-b" />);
+  rerender(<ImageEditor image="img-c" />);
+  await flush();
+
+  // Omitting `options` used to hand the memo a new {} each render.
+  expect(vi.mocked(stableKey).mock.calls.length).toBe(afterMount);
 });
 
 it('exposes the editor instance through the ref and calls onLoad', async () => {
