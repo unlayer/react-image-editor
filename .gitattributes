@@ -1,0 +1,7 @@
+# Normalize line endings to LF for all text files,
+# so `npm run lint` / `npm run format` behave identically
+# on Windows (core.autocrlf) and Linux/CI.
+* text=auto eol=lf
+
+# Windows batch files require CRLF to run correctly.
+*.bat text eol=crlf
