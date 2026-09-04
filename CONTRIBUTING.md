@@ -24,6 +24,19 @@
 - `npm run build` builds the component for publishing to npm.
 - `npm run build` in the `demo` directory builds the demo app.
 
+## Releasing
+
+Releases are published from CI, not from a maintainer's machine.
+
+1. Update `CHANGELOG.md`: rename `Unreleased` to the new version.
+2. Bump the version: `npm version <patch|minor|major>` (this creates the `vX.Y.Z` tag).
+3. `git push --follow-tags`.
+
+Pushing the tag runs `.github/workflows/release.yml`, which re-runs lint,
+typecheck, tests and build, verifies the tag matches `package.json`, publishes
+to npm with [provenance](https://docs.npmjs.com/generating-provenance-statements),
+and creates the GitHub Release. It needs an `NPM_TOKEN` repository secret.
+
 ## Conventions
 
 - Commit messages follow [Conventional Commits 1.0](https://www.conventionalcommits.org/en/v1.0.0/).
