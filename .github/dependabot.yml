@@ -7,6 +7,14 @@ updates:
     groups:
       dev-dependencies:
         dependency-type: development
+  - package-ecosystem: npm
+    directory: /demo
+    schedule:
+      interval: weekly
+    groups:
+      demo-dependencies:
+        patterns:
+          - '*'
   - package-ecosystem: github-actions
     directory: /
     schedule:

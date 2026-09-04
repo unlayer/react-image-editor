@@ -26,6 +26,22 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: false
 
+  demo:
+    name: Demo typecheck & build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      # The demo aliases the package to ../src, so the root install has to
+      # exist for its dependencies to resolve.
+      - run: npm ci
+      - run: npm --prefix demo ci
+      - run: npm --prefix demo run typecheck
+      - run: npm --prefix demo run build
+
   test:
     name: Test (Node ${{ matrix.node }}, React ${{ matrix.react }})
     runs-on: ubuntu-latest
