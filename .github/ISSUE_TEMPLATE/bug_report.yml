@@ -1,0 +1,55 @@
+name: Bug report
+description: Something in the React wrapper is not working
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This repository is the **React wrapper**. Questions about the editor
+        itself, your Unlayer account, or AI Assistant entitlements are better
+        raised with Unlayer support — see the links when you go back.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What did you expect, and what happened instead?
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      description: A minimal example is worth far more than a description.
+      placeholder: |
+        1. Render <ImageEditor image="..." options={{ ... }} />
+        2. ...
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: '@unlayer/react-image-editor version'
+      placeholder: 1.0.2
+    validations:
+      required: true
+  - type: input
+    id: react-version
+    attributes:
+      label: React version
+      placeholder: 19.2.7
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Browser / framework
+      description: Include the framework if relevant (Next.js App Router, Vite, CRA...).
+      placeholder: Chrome 140, Next.js 15 App Router
+    validations:
+      required: true
+  - type: textarea
+    id: console
+    attributes:
+      label: Console output
+      description: Any errors logged by the wrapper or passed to onError.
+      render: shell

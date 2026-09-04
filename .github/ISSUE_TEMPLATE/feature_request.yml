@@ -1,0 +1,21 @@
+name: Feature request
+description: Suggest an improvement to the React wrapper
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem does this solve?
+      description: Describe the situation you are stuck in, not only the solution you have in mind.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed API
+      description: If you have a shape in mind, sketch it.
+      render: jsx
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives you have tried
