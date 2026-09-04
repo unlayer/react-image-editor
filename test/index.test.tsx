@@ -361,6 +361,45 @@ it('applies minHeight and style to the container', async () => {
   );
 });
 
+it('lets style override the container default and wrapperStyle reach the wrapper', async () => {
+  render(
+    <ImageEditor
+      editorId="styled"
+      image="img-a"
+      minHeight={300}
+      style={{ flex: 'none', width: 640 }}
+      wrapperStyle={{ display: 'block', minHeight: 0 }}
+    />
+  );
+  await flush();
+
+  const container = document.querySelector('#styled') as HTMLElement;
+  const wrapper = container.parentElement as HTMLElement;
+
+  // flex is a default now, not a hardcoded override. ('none' is stored in
+  // expanded longhand form; the default `flex: 1` would be '1 1 0%'.)
+  expect(container.style.flex).toBe('0 0 auto');
+  expect(container.style.width).toBe('640px');
+  // The outer wrapper is reachable, so the component can be dropped into a
+  // non-flex layout.
+  expect(wrapper.style.display).toBe('block');
+  expect(wrapper.style.minHeight).toBe('0px');
+});
+
+it('gives the editor region an accessible name, overridable via ariaLabel', async () => {
+  const { rerender } = render(<ImageEditor editorId="a11y" image="img-a" />);
+  await flush();
+
+  const container = document.querySelector('#a11y') as HTMLElement;
+  expect(container.getAttribute('role')).toBe('region');
+  expect(container.getAttribute('aria-label')).toBe('Image editor');
+
+  rerender(
+    <ImageEditor editorId="a11y" image="img-a" ariaLabel="Avatar cropper" />
+  );
+  expect(container.getAttribute('aria-label')).toBe('Avatar cropper');
+});
+
 it('passes onCancel and onLoadError through to the editor', async () => {
   const onCancel = vi.fn();
   const onLoadError = vi.fn();

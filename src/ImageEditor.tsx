@@ -13,7 +13,15 @@ function ImageEditorInner(
   props: ImageEditorProps,
   ref: React.Ref<ImageEditorRef>
 ) {
-  const { image, options = {}, scriptUrl, minHeight = 500, style = {} } = props;
+  const {
+    image,
+    options = {},
+    scriptUrl,
+    minHeight = 500,
+    style = {},
+    wrapperStyle = {},
+    ariaLabel = 'Image editor',
+  } = props;
 
   const [editor, setEditor] = useState<ImageEditorInstance | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -196,9 +204,20 @@ function ImageEditorInner(
         flex: 1,
         display: 'flex',
         minHeight: minHeight,
+        ...wrapperStyle,
       }}
     >
-      <div id={editorId} ref={containerRef} style={{ ...style, flex: 1 }} />
+      <div
+        id={editorId}
+        ref={containerRef}
+        // The embed renders an unlabelled generic div inside, so without a
+        // role and a name the whole editing surface is anonymous to
+        // assistive tech.
+        role="region"
+        aria-label={ariaLabel}
+        // flex first: a default the consumer's style can override.
+        style={{ flex: 1, ...style }}
+      />
     </div>
   );
 }

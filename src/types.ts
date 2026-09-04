@@ -101,8 +101,18 @@ export interface ImageEditorProps {
   editorId?: string;
   /** Minimum height of the editor container. Defaults to 500. */
   minHeight?: number | string;
-  /** Styles applied to the container div. */
+  /** Styles applied to the container div. Overrides the default `flex: 1`. */
   style?: CSSProperties;
+  /**
+   * Styles applied to the outer wrapper div, which owns `minHeight` and the
+   * flex layout. Set this to drop the editor into a non-flex layout.
+   */
+  wrapperStyle?: CSSProperties;
+  /**
+   * Accessible name for the editor region. The embed renders no landmark
+   * and no name of its own. Defaults to 'Image editor'.
+   */
+  ariaLabel?: string;
   /**
    * Override the embed script URL (e.g. to pin an environment). One embed
    * per page: the first loader to run installs window.ImageEditor and wins

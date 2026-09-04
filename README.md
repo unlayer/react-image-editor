@@ -48,18 +48,20 @@ The component works out of the box in React Server Components environments (e.g.
 
 ## Props
 
-| Prop          | Type                          | Description                                                                                                                                                                            |
-| ------------- | ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `image`       | `string` (required)           | Image URL or base64 data URL to edit.                                                                                                                                                  |
-| `options`     | `ImageEditorOptions`          | Editor configuration: `projectId`, `user`, `features`, `theme`, `locale`, `translations`, `env`, `offline`, `licenseUrl`, `defaultPrompt`, `autoSubmitPrompt`, `aiAssistantOpenState`. |
-| `editorId`    | `string`                      | id for the container div. Cosmetic — the editor mounts by element reference.                                                                                                           |
-| `minHeight`   | `number \| string`            | Minimum height of the editor container. Defaults to `500`.                                                                                                                             |
-| `style`       | `CSSProperties`               | Styles applied to the container div.                                                                                                                                                   |
-| `onLoad`      | `(editor) => void`            | Called with the editor instance once it is mounted.                                                                                                                                    |
-| `onSave`      | `({ dataUrl, blob }) => void` | Called when the user saves the edited image.                                                                                                                                           |
-| `onCancel`    | `() => void`                  | Called when the user cancels editing.                                                                                                                                                  |
-| `onLoadError` | `() => void`                  | Called when the image fails to load into the canvas (CORS, 404, decode error).                                                                                                         |
-| `onError`     | `(error: Error) => void`      | Wrapper-level failures: embed script load, editor creation, or image reset. Falls back to `console.error` when absent.                                                                 |
+| Prop           | Type                          | Description                                                                                                                                                                            |
+| -------------- | ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `image`        | `string` (required)           | Image URL or base64 data URL to edit.                                                                                                                                                  |
+| `options`      | `ImageEditorOptions`          | Editor configuration: `projectId`, `user`, `features`, `theme`, `locale`, `translations`, `env`, `offline`, `licenseUrl`, `defaultPrompt`, `autoSubmitPrompt`, `aiAssistantOpenState`. |
+| `editorId`     | `string`                      | id for the container div. Cosmetic — the editor mounts by element reference.                                                                                                           |
+| `minHeight`    | `number \| string`            | Minimum height of the editor container. Defaults to `500`.                                                                                                                             |
+| `style`        | `CSSProperties`               | Styles applied to the container div. Overrides the default `flex: 1`.                                                                                                                  |
+| `wrapperStyle` | `CSSProperties`               | Styles applied to the outer wrapper div, which owns `minHeight` and the flex layout. Set this to drop the editor into a non-flex layout.                                               |
+| `ariaLabel`    | `string`                      | Accessible name for the editor region. Defaults to `'Image editor'`.                                                                                                                   |
+| `onLoad`       | `(editor) => void`            | Called with the editor instance once it is mounted.                                                                                                                                    |
+| `onSave`       | `({ dataUrl, blob }) => void` | Called when the user saves the edited image.                                                                                                                                           |
+| `onCancel`     | `() => void`                  | Called when the user cancels editing.                                                                                                                                                  |
+| `onLoadError`  | `() => void`                  | Called when the image fails to load into the canvas (CORS, 404, decode error).                                                                                                         |
+| `onError`      | `(error: Error) => void`      | Wrapper-level failures: embed script load, editor creation, or image reset. Falls back to `console.error` when absent.                                                                 |
 
 ## Editor instance (ref)
 
