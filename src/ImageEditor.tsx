@@ -133,10 +133,13 @@ function ImageEditorInner(
         }
       })
       .catch((error) => {
-        // If the versioned bundle never evaluated, the CDN loader has
-        // cached a rejected promise it will return forever — hard-reset it
-        // so the next mount attempt can retry from scratch. When the impl
-        // global exists, the failure was a mount error; keep the loader.
+        // If the versioned bundle never evaluated, drop the loader state
+        // we own so the next mount starts from a fresh embed.js. This is
+        // not what makes recovery possible — embed.js nulls its own cached
+        // promise on failure — so on a host-loaded page resetLoader leaves
+        // the tag and global in place and only our cache is cleared. When
+        // the impl global exists the failure was a mount error, not a
+        // bundle-load one; keep the loader.
         if (!window.__ImageEditorImpl__) {
           resetLoader(scriptUrl);
         }

@@ -91,7 +91,7 @@ const dataUrl = editorRef.current?.editor?.getImage();
 Two distinct channels:
 
 - **`onLoadError`** — the editor loaded fine, but the _image_ couldn't be loaded into the canvas (CORS, dead URL, decode error).
-- **`onError`** — the wrapper couldn't reach a working editor: the embed script failed to load, editor creation was rejected, or re-applying a changed `image` failed. After a CDN failure the wrapper automatically resets its loader state, so a later remount retries from scratch.
+- **`onError`** — the wrapper couldn't reach a working editor: the embed script failed to load, editor creation was rejected, or re-applying a changed `image` failed. A later remount retries from scratch after a CDN failure. The wrapper also clears its own loader state, but only tears down a script tag it injected itself — an embed the host page loaded is left intact for its other consumers.
 
 ## Tools
 
