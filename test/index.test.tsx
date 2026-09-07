@@ -321,6 +321,62 @@ it('remounts the editor when a non-updatable option changes', async () => {
   expect(mountOptionsOf(1).projectId).toBe(2);
 });
 
+it('does not remount or update options when only the key order changes', async () => {
+  const { rerender } = render(
+    <ImageEditor image="img-a" options={{ projectId: 1, user: { id: 'u1' } }} />
+  );
+  await flush();
+
+  rerender(
+    <ImageEditor image="img-a" options={{ user: { id: 'u1' }, projectId: 1 }} />
+  );
+  await flush();
+
+  // Key-order-only differences are semantically identical and must neither
+  // destroy the editor nor push live options updates.
+  expect(mockInstance.destroy).not.toHaveBeenCalled();
+  expect(createEditor).toHaveBeenCalledTimes(1);
+  expect(mockInstance.updateOptions).not.toHaveBeenCalled();
+});
+
+it('detects a change in a previously-undefined option value', async () => {
+  const { rerender } = render(
+    <ImageEditor
+      image="img-a"
+      options={{ projectId: 1, user: { name: undefined } }}
+    />
+  );
+  await flush();
+
+  rerender(
+    <ImageEditor
+      image="img-a"
+      options={{ projectId: 1, user: { name: 'Adeel' } }}
+    />
+  );
+  await flush();
+
+  // JSON.stringify would have dropped the undefined name and treated both
+  // options as identical; the stable diff must see the real change.
+  expect(mockInstance.destroy).toHaveBeenCalledTimes(1);
+  expect(createEditor).toHaveBeenCalledTimes(2);
+  expect(mountOptionsOf(1).user?.name).toBe('Adeel');
+});
+
+it('renders without crashing when options contain a circular reference', async () => {
+  const options: ImageEditorOptions = { projectId: 1 } as ImageEditorOptions;
+  const self: Record<string, unknown> = {};
+  self.user = self;
+  options.user = self as ImageEditorOptions['user'];
+
+  render(<ImageEditor image="img-a" options={options} />);
+  await flush();
+
+  // A circular options object must not throw at render; the editor mounts once.
+  expect(createEditor).toHaveBeenCalledTimes(1);
+  expect(mockInstance.destroy).not.toHaveBeenCalled();
+});
+
 it('always invokes the latest callbacks', async () => {
   const firstOnSave = vi.fn();
   const secondOnSave = vi.fn();
