@@ -7,6 +7,7 @@ import React, {
 } from 'react';
 
 import { loadScript, resetLoader } from './loadScript';
+import { stableKey } from './optionsDiff';
 import { ImageEditorInstance, ImageEditorProps, ImageEditorRef } from './types';
 
 function ImageEditorInner(
@@ -74,8 +75,8 @@ function ImageEditorInner(
   // theme/locale/translations apply via updateOptions; everything else in
   // options requires a remount.
   const { theme, locale, translations, ...remountOptions } = options;
-  const remountKey = JSON.stringify(remountOptions);
-  const updatableKey = JSON.stringify([theme, locale, translations]);
+  const remountKey = stableKey(remountOptions);
+  const updatableKey = stableKey([theme, locale, translations]);
 
   useEffect(() => {
     let cancelled = false;
@@ -122,7 +123,7 @@ function ImageEditorInner(
         instance = created;
         editorRef.current = created;
         appliedImageRef.current = mountImage;
-        appliedUpdatableRef.current = JSON.stringify([
+        appliedUpdatableRef.current = stableKey([
           mountOptions.theme,
           mountOptions.locale,
           mountOptions.translations,
