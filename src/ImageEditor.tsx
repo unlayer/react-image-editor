@@ -7,6 +7,7 @@ import React, {
 } from 'react';
 
 import { loadScript, resetLoader } from './loadScript';
+import { stableKey } from './stableKey';
 import { ImageEditorInstance, ImageEditorProps, ImageEditorRef } from './types';
 
 function ImageEditorInner(
@@ -74,8 +75,18 @@ function ImageEditorInner(
   // theme/locale/translations apply via updateOptions; everything else in
   // options requires a remount.
   const { theme, locale, translations, ...remountOptions } = options;
-  const remountKey = JSON.stringify(remountOptions);
-  const updatableKey = JSON.stringify([theme, locale, translations]);
+  // stableKey, not JSON.stringify: the latter is key-order sensitive, so a
+  // deeply equal options object written with its keys in a different order
+  // would remount the editor and discard the user's unsaved work.
+  //
+  // Deliberately recomputed every render, NOT memoised on the options
+  // identity. Callers are free to mutate one long-lived options object in
+  // place, and a memo keyed on that object would never see it change,
+  // leaving projectId/theme/feature settings silently stale. Serializing a
+  // small options object is far cheaper than the remount a missed change
+  // costs, and it is what the released JSON.stringify did.
+  const remountKey = stableKey(remountOptions);
+  const updatableKey = stableKey([theme, locale, translations]);
 
   useEffect(() => {
     let cancelled = false;
@@ -122,7 +133,7 @@ function ImageEditorInner(
         instance = created;
         editorRef.current = created;
         appliedImageRef.current = mountImage;
-        appliedUpdatableRef.current = JSON.stringify([
+        appliedUpdatableRef.current = stableKey([
           mountOptions.theme,
           mountOptions.locale,
           mountOptions.translations,
