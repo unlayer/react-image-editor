@@ -21,6 +21,7 @@ function ImageEditorInner(
     style = {},
     wrapperStyle = {},
     ariaLabel = 'Image editor',
+    placeholder,
   } = props;
 
   const [editor, setEditor] = useState<ImageEditorInstance | null>(null);
@@ -202,12 +203,20 @@ function ImageEditorInner(
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editor, updatableKey]);
 
+  // Rendered as an overlay sibling rather than a child of the mount
+  // container: the embed owns that container's DOM, and React must not
+  // reconcile children in and out from under it.
+  const showPlaceholder = placeholder !== undefined && editor === null;
+
   return (
     <div
       style={{
         flex: 1,
         display: 'flex',
         minHeight: minHeight,
+        // Only when needed, so existing layouts are untouched.
+        ...(showPlaceholder ? { position: 'relative' } : null),
+        // Last, so a consumer can still override position if they need to.
         ...wrapperStyle,
       }}
     >
@@ -222,6 +231,19 @@ function ImageEditorInner(
         // flex first: a default the consumer's style can override.
         style={{ flex: 1, ...style }}
       />
+      {showPlaceholder && (
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          {placeholder}
+        </div>
+      )}
     </div>
   );
 }
