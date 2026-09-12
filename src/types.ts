@@ -18,6 +18,11 @@ export interface ImageEditorSaveResult {
 // KEEP IN SYNC WITH packages/image-editor/src/index.ts in the unlayer
 // monorepo — these mirror the private @unlayer/image-editor package's
 // public API until they move into @unlayer/types.
+//
+// test/typesDrift.test.ts enforces the "until": it fails as soon as
+// @unlayer/types exports any of these names, so the local copy gets deleted
+// rather than left to diverge. It cannot detect the private package
+// changing underneath us — that still needs a human.
 
 /**
  * Options for mounting the image editor.
