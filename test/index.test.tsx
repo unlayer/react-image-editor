@@ -434,7 +434,37 @@ it('forwards a custom scriptUrl to loadScript', async () => {
   );
   await flush();
 
-  expect(loadScript).toHaveBeenCalledWith('https://example.com/embed.js');
+  expect(loadScript).toHaveBeenCalledWith(
+    'https://example.com/embed.js',
+    undefined
+  );
+});
+
+it('forwards reusedTagTimeoutMs to loadScript', async () => {
+  render(<ImageEditor image="img-a" reusedTagTimeoutMs={5_000} />);
+  await flush();
+
+  expect(loadScript).toHaveBeenCalledWith(undefined, 5_000);
+});
+
+it('leaves loadScript to its own default when the timeout is omitted', async () => {
+  render(<ImageEditor image="img-a" />);
+  await flush();
+
+  expect(loadScript).toHaveBeenCalledWith(undefined, undefined);
+});
+
+it('does not remount when only the timeout changes', async () => {
+  const { rerender } = render(
+    <ImageEditor image="img-a" reusedTagTimeoutMs={5_000} />
+  );
+  await flush();
+
+  rerender(<ImageEditor image="img-a" reusedTagTimeoutMs={9_000} />);
+  await flush();
+
+  expect(mockInstance.destroy).not.toHaveBeenCalled();
+  expect(createEditor).toHaveBeenCalledTimes(1);
 });
 
 it('reports a loadScript failure via onError and recovers on remount', async () => {
@@ -704,7 +734,10 @@ it('remounts when scriptUrl changes', async () => {
 
   expect(mockInstance.destroy).toHaveBeenCalledTimes(1);
   expect(createEditor).toHaveBeenCalledTimes(2);
-  expect(loadScript).toHaveBeenLastCalledWith('https://b.example.com/embed.js');
+  expect(loadScript).toHaveBeenLastCalledWith(
+    'https://b.example.com/embed.js',
+    undefined
+  );
 });
 
 it('reverts theme to default when it is removed from options', async () => {

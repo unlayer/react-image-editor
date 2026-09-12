@@ -84,7 +84,9 @@ function ImageEditorInner(
     chainRef.current = chainRef.current
       .then(async () => {
         if (cancelled) return;
-        await loadScript(scriptUrl);
+        // Read at call time from latestPropsRef, so changing the timeout
+        // never tears the editor down and remounts it.
+        await loadScript(scriptUrl, latestPropsRef.current.reusedTagTimeoutMs);
         if (cancelled) return;
 
         const embed = window.ImageEditor;
