@@ -5,13 +5,30 @@ on:
     branches: [main]
   pull_request:
 
+# These jobs only read the repository; the Codecov upload authenticates with
+# its own token rather than the workflow token.
+permissions:
+  contents: read
+
+# Superseded runs on a PR are pointless - the 6-job matrix keeps runners busy
+# for a result nobody will look at.
+#
+# PRs share a group keyed on the ref, so a new push supersedes the run it
+# replaces. Every other event - notably a push to main - gets a group of its
+# own keyed on run_id, because only one run per group may sit pending: with a
+# shared group, a third push would discard the second one's queued run even
+# though cancel-in-progress is off for pushes.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.ref || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   checks:
     name: Lint, typecheck & build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: 22
           cache: npm
@@ -20,7 +37,7 @@ jobs:
       - run: npm run typecheck
       - run: npm run build
       - run: npm run test:coverage
-      - uses: codecov/codecov-action@v5
+      - uses: codecov/codecov-action@0fb7174895f61a3b6b78fc075e0cd60383518dac # v5.5.5
         with:
           files: coverage/lcov.info
           token: ${{ secrets.CODECOV_TOKEN }}
@@ -30,8 +47,8 @@ jobs:
     name: Demo typecheck & build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: 22
           cache: npm
@@ -51,8 +68,8 @@ jobs:
         node: [20, 22, 24]
         react: [18, 19]
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: ${{ matrix.node }}
           cache: npm
