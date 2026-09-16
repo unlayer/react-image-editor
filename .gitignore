@@ -5,3 +5,10 @@ node_modules
 .history
 dist
 /coverage
+
+# Foreign lockfiles
+bun.lock
+bun.lockb
+pnpm-lock.yaml
+yarn.lock
+

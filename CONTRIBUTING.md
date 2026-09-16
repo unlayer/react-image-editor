@@ -2,7 +2,7 @@
 
 ## Prerequisites
 
-[Node.js](https://nodejs.org/) >= v20 must be installed. CI tests on Node 20, 22 and 24.
+[Node.js](https://nodejs.org/) >= v20 and `npm` are required. CI tests on Node 20, 22 and 24 using `npm`. Other package managers (such as Bun, pnpm, or Yarn) are not supported to prevent lockfile drift.
 
 ## Installation
 
