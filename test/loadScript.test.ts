@@ -192,3 +192,34 @@ it('resetLoader removes the global, the tag, and the cached promise', async () =
   fire(scriptTags()[0], 'load');
   await retry;
 });
+
+it('does not prefetch the bundle when the host page installed the global', async () => {
+  // load() with no arguments resolves "latest" and the embed caches that
+  // promise, so prefetching here would override a version the embed's own
+  // createEditor pins. createEditor is awaited straight after this resolves
+  // and starts the request anyway.
+  const embed = mockEmbed();
+  window.ImageEditor = embed;
+
+  await loadScript();
+
+  expect(embed.load).not.toHaveBeenCalled();
+  expect(scriptTags()).toHaveLength(0);
+});
+
+it('accepts a custom reused-tag timeout', async () => {
+  vi.useFakeTimers();
+  try {
+    const hostTag = document.createElement('script');
+    hostTag.src = 'https://cdn.unlayer.com/image-editor/embed.js';
+    document.head.appendChild(hostTag);
+
+    const rejection = expect(
+      loadScript('https://cdn.unlayer.com/image-editor/embed.js', 5_000)
+    ).rejects.toThrow(/Timed out/);
+    vi.advanceTimersByTime(5_000);
+    await rejection;
+  } finally {
+    vi.useRealTimers();
+  }
+});
