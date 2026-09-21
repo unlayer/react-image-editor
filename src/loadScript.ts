@@ -1,9 +1,9 @@
 const defaultScriptUrl = 'https://cdn.unlayer.com/image-editor/embed.js';
 
-// When reusing a host-injected tag we cannot know whether it already fired
-// `error` (a dead tag never re-fires), so the wait is bounded instead of
-// letting the promise hang forever.
-const REUSED_TAG_TIMEOUT_MS = 30_000;
+// A script request can stall indefinitely (for example, when a network
+// middlebox drops the CDN request) without dispatching `load` or `error`.
+// Bound every wait so consumers can render an error state and retry.
+const SCRIPT_LOAD_TIMEOUT_MS = 30_000;
 
 interface TrackedLoad {
   promise: Promise<void>;
@@ -52,22 +52,32 @@ export const loadScript = (
     // injecting a duplicate.
     const existing = findScriptTag(scriptUrl);
     const tag = existing ?? document.createElement('script');
-    let timeout: ReturnType<typeof setTimeout> | undefined;
 
     const failWith = (error: Error) => {
       // A tag that fired `error` never fires again — evict the cache and
       // remove the dead tag so a retry injects a fresh one.
-      if (timeout !== undefined) clearTimeout(timeout);
+      clearTimeout(timeout);
       loads.delete(scriptUrl);
       tag.remove();
       reject(error);
     };
     abort = failWith;
 
+    // An existing tag may have errored before listeners were attached, and a
+    // newly injected tag may never settle at all. In either case, make the
+    // failure observable instead of leaving the editor permanently blank.
+    const timeout = setTimeout(() => {
+      failWith(
+        new Error(
+          `Timed out loading the image editor embed script: ${scriptUrl}`
+        )
+      );
+    }, SCRIPT_LOAD_TIMEOUT_MS);
+
     tag.addEventListener(
       'load',
       () => {
-        if (timeout !== undefined) clearTimeout(timeout);
+        clearTimeout(timeout);
         // Prefetch the versioned bundle so the first createEditor doesn't
         // pay a second network hop. A prefetch failure is swallowed here —
         // the same failure surfaces through createEditor's rejection.
@@ -89,18 +99,7 @@ export const loadScript = (
       { once: true }
     );
 
-    if (existing) {
-      // The tag may have errored before we attached listeners (a loaded
-      // embed would have been caught by the window.ImageEditor check
-      // above) — bound the wait so the promise can't hang forever.
-      timeout = setTimeout(() => {
-        failWith(
-          new Error(
-            `Timed out waiting for an existing embed script tag: ${scriptUrl}`
-          )
-        );
-      }, REUSED_TAG_TIMEOUT_MS);
-    } else {
+    if (!existing) {
       tag.src = scriptUrl;
       document.head.appendChild(tag);
     }

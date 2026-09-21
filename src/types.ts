@@ -1,4 +1,4 @@
-import { CSSProperties } from 'react';
+import { CSSProperties, ReactNode } from 'react';
 
 import type {
   Features,
@@ -92,6 +92,13 @@ export type ImageEditorOptions = Omit<
   'container' | 'image' | 'onSave' | 'onCancel' | 'onLoadError'
 >;
 
+/** A custom UI displayed while the embed script and editor initialize. */
+export type ImageEditorLoadingFallback = ReactNode;
+
+/** A custom UI displayed when the embed script or editor initialization fails. */
+export type ImageEditorErrorFallback =
+  ReactNode | ((error: Error, retry: () => void) => ReactNode);
+
 export interface ImageEditorProps {
   /** Image URL or data URL to edit. Changes apply via a serialized reset. */
   image: string;
@@ -119,6 +126,13 @@ export interface ImageEditorProps {
    * globally, so do not mix different scriptUrls across components.
    */
   scriptUrl?: string;
+  /** Custom UI displayed while the embed script and editor initialize. */
+  loadingFallback?: ImageEditorLoadingFallback;
+  /**
+   * Custom UI displayed when initialization fails. A function receives the
+   * error and a retry callback; a React node is also accepted for static UI.
+   */
+  errorFallback?: ImageEditorErrorFallback;
   /** Called with the editor instance once it is mounted. */
   onLoad?(editor: ImageEditorInstance): void;
   /**

@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, render } from '@testing-library/react';
+import { act, fireEvent, render } from '@testing-library/react';
 
 import ImageEditor, {
   ImageEditorInstance,
@@ -79,6 +79,47 @@ it('renders the editor container', async () => {
 
   expect(document.querySelector('#test-editor')).toBeTruthy();
   await flush();
+});
+
+it('shows a custom loading fallback until the editor is ready', async () => {
+  const deferred = defer<void>();
+  vi.mocked(loadScript).mockImplementationOnce(() => deferred.promise);
+
+  render(
+    <ImageEditor
+      image="img-a"
+      loadingFallback={<span data-testid="loading">Preparing editor</span>}
+    />
+  );
+
+  expect(document.querySelector('[data-testid="loading"]')).toBeTruthy();
+  deferred.resolve();
+  await flush();
+
+  expect(document.querySelector('[data-testid="loading"]')).toBeNull();
+  expect(createEditor).toHaveBeenCalledTimes(1);
+});
+
+it('renders an error fallback with a working retry callback', async () => {
+  const error = new Error('cdn down');
+  vi.mocked(loadScript).mockRejectedValueOnce(error);
+  const renderError = vi.fn((_error: Error, retry: () => void) => (
+    <button type="button" onClick={retry}>
+      Retry editor
+    </button>
+  ));
+
+  render(<ImageEditor image="img-a" errorFallback={renderError} />);
+  await flush();
+
+  expect(renderError).toHaveBeenCalledWith(error, expect.any(Function));
+  expect(createEditor).not.toHaveBeenCalled();
+
+  fireEvent.click(document.querySelector('button')!);
+  await flush();
+
+  expect(createEditor).toHaveBeenCalledTimes(1);
+  expect(document.querySelector('button')).toBeNull();
 });
 
 it('creates the editor with the container element, image, and options', async () => {
