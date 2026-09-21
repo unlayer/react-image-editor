@@ -15,6 +15,13 @@ interface TrackedLoad {
 // share a single <script> tag.
 const loads = new Map<string, TrackedLoad>();
 
+// The tags this module injected. Anything else matching the script URL was
+// put there by the host page, which may have other consumers of the embed:
+// a reset must not remove it, or delete the global it installed, from under
+// them. A tag that has provably failed is still removed either way — see
+// failWith.
+const ownedTags = new WeakSet<HTMLScriptElement>();
+
 const resolveUrl = (scriptUrl: string): string =>
   new URL(scriptUrl, document.baseURI).href;
 
@@ -54,15 +61,18 @@ export const loadScript = (
     const tag = existing ?? document.createElement('script');
     let timeout: ReturnType<typeof setTimeout> | undefined;
 
-    const failWith = (error: Error) => {
-      // A tag that fired `error` never fires again — evict the cache and
-      // remove the dead tag so a retry injects a fresh one.
+    const failWith = (error: Error, removeTag: boolean) => {
+      // A tag that fired `error` (or timed out) never fires again — evict
+      // the cache and remove the dead tag so a retry injects a fresh one,
+      // even when the host injected it: a failed tag is no use to anyone.
+      // A reset is different — the tag there may be perfectly alive — so it
+      // removes only what we own.
       if (timeout !== undefined) clearTimeout(timeout);
       loads.delete(scriptUrl);
-      tag.remove();
+      if (removeTag) tag.remove();
       reject(error);
     };
-    abort = failWith;
+    abort = (error: Error) => failWith(error, ownedTags.has(tag));
 
     tag.addEventListener(
       'load',
@@ -83,7 +93,8 @@ export const loadScript = (
         failWith(
           new Error(
             `Failed to load the image editor embed script: ${scriptUrl}`
-          )
+          ),
+          true
         );
       },
       { once: true }
@@ -97,11 +108,13 @@ export const loadScript = (
         failWith(
           new Error(
             `Timed out waiting for an existing embed script tag: ${scriptUrl}`
-          )
+          ),
+          true
         );
       }, REUSED_TAG_TIMEOUT_MS);
     } else {
       tag.src = scriptUrl;
+      ownedTags.add(tag);
       document.head.appendChild(tag);
     }
   });
@@ -111,18 +124,31 @@ export const loadScript = (
 };
 
 /**
- * Hard-reset the embed loader. The CDN loader caches its versioned-bundle
- * promise forever — including rejections — so after a bundle-load failure
- * the only way to retry is to reload embed.js with fresh module state.
- * Rejects any still-pending load for the URL (waiters fail fast through
- * their normal error paths instead of hanging on a removed tag), removes
- * the embed script tag, deletes window.ImageEditor, and evicts the cached
- * load; the next loadScript call starts from scratch.
+ * Reset this module's loader state for a script URL. Rejects any
+ * still-pending load (waiters fail fast through their normal error paths
+ * instead of hanging on a removed tag) and evicts the cached load, so the
+ * next loadScript call starts from scratch.
+ *
+ * The script tag and window.ImageEditor are only torn down when we injected
+ * the tag ourselves. On a page that loaded embed.js itself the embed may be
+ * in active use by other consumers, and removing a working global out from
+ * under them is not ours to do.
+ *
+ * Recovery does not depend on any of this: embed.js nulls its own cached
+ * promise when a bundle load fails, so a later createEditor retries whether
+ * or not the tag was ours. This only clears the state we own.
  */
 export const resetLoader = (scriptUrl: string = defaultScriptUrl): void => {
+  // Captured before abort(), which may remove the tag itself.
+  const tag = findScriptTag(scriptUrl);
+  const ownedTag = tag && ownedTags.has(tag) ? tag : null;
+
   const tracked = loads.get(scriptUrl);
   loads.delete(scriptUrl);
   tracked?.abort(new Error(`The image editor loader was reset: ${scriptUrl}`));
-  findScriptTag(scriptUrl)?.remove();
-  delete window.ImageEditor;
+
+  if (ownedTag) {
+    ownedTag.remove();
+    delete window.ImageEditor;
+  }
 };
