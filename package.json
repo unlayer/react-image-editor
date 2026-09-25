@@ -41,8 +41,7 @@
     "format": "prettier --write .",
     "prepare": "npm run build",
     "prepublishOnly": "npm run lint && npm run typecheck && npm test",
-    "release": "npm run build && npm publish",
-    "netlify-build": "cd demo && npm install && npm run build"
+    "release": "npm run build && npm publish"
   },
   "peerDependencies": {
     "react": ">=18"

@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Unlayer support
+    url: https://unlayer.com/contact
+    about: Account, billing, AI Assistant entitlements, or the editor itself (not the React wrapper).
+  - name: Unlayer documentation
+    url: https://docs.unlayer.com
+    about: Editor options, features and configuration reference.
