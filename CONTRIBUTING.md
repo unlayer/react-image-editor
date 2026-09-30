@@ -2,27 +2,32 @@
 
 ## Prerequisites
 
-[Node.js](https://nodejs.org/) >= v20 must be installed. CI tests on Node 20, 22 and 24.
+- [Node.js](https://nodejs.org/) >= v22.13, which pnpm 11 requires. The published component still supports Node 20; CI tests on Node 20, 22 and 24.
+- [pnpm](https://pnpm.io/installation) 11. The exact version is pinned in the `packageManager` field of `package.json`.
 
 ## Installation
 
-- Running `npm install` in the component's root directory will install everything you need for development.
-- Running `npm install` in the `demo` directory will install everything you need to run the demo app locally.
+- Running `pnpm install` in the root directory installs everything you need for development, including the demo app in `demo/` (a pnpm workspace package).
+- npm, Yarn and Bun aren't supported. `npm install` and `npm run` stop with an `EBADDEVENGINES` error.
+
+### Dependency install scripts
+
+pnpm doesn't run a dependency's install scripts (`preinstall`, `install`, `postinstall`) unless the package is listed under `allowBuilds` in `pnpm-workspace.yaml`, and the install fails when a dependency brings in one that hasn't been reviewed. If that happens, check what the script does, then add the package with `true` (it needs the script) or `false` (it works without it) and a comment saying why.
 
 ## Demo Development Server
 
-- `npm run dev` from the `demo` directory runs the demo app at [http://localhost:5173](http://localhost:5173) with hot module reloading. The demo imports the component straight from `src/`, so it doubles as a development harness.
+- `pnpm dev` runs the demo app at [http://localhost:5173](http://localhost:5173) with hot module reloading. The demo imports the component straight from `src/`, so it doubles as a development harness.
 
 ## Running Tests
 
-- `npm test` runs the tests once.
-- `npm run test:coverage` runs the tests and produces a coverage report in `coverage/`.
-- `npm run test:watch` runs the tests on every change.
+- `pnpm test` runs the tests once.
+- `pnpm test:coverage` runs the tests and produces a coverage report in `coverage/`.
+- `pnpm test:watch` runs the tests on every change.
 
 ## Building
 
-- `npm run build` builds the component for publishing to npm.
-- `npm run build` in the `demo` directory builds the demo app.
+- `pnpm build` builds the component for publishing to npm.
+- `pnpm --dir demo build` builds the demo app.
 
 ## Conventions
 

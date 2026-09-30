@@ -200,12 +200,11 @@ Set `options.locale` (bundled: `en`, `es`, `fr`, `de`, `it`, `pt`, `nl`, `ja`, `
 
 ## Demo
 
-Try the live demo at [react-image-editor-example.vercel.app](https://react-image-editor-example.vercel.app/), or run it locally — a Vite-based demo lives in [`demo/`](demo):
+Try the live demo at [react-image-editor-example.vercel.app](https://react-image-editor-example.vercel.app/), or run it locally — a Vite-based demo lives in [`demo/`](demo). From the repository root, with [pnpm](https://pnpm.io/installation) installed:
 
 ```sh
-cd demo
-npm install
-npm run dev
+pnpm install
+pnpm dev
 ```
 
 ## License

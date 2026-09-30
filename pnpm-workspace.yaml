@@ -1,0 +1,17 @@
+packages:
+  - demo
+
+# pnpm never runs a dependency's install scripts unless it is listed here, and
+# fails the install when a new one appears unreviewed. Keep this list short and
+# give every entry a reason.
+allowBuilds:
+  # The postinstall only swaps the JS launcher for the native binary (a startup
+  # optimization); @esbuild/<platform> already ships as an optional dependency.
+  esbuild: false
+
+# devEngines.packageManager in package.json is what makes `npm install` and
+# `npm run` refuse to run here. Left at its default, pnpm would also record its
+# own version in pnpm-lock.yaml as a second YAML document, which GitHub's
+# dependency graph can't read yet, silently dropping Dependabot alerts.
+# `ignore` keeps the lockfile single-document; packageManager still pins pnpm.
+pmOnFail: ignore

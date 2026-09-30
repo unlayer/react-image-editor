@@ -26,12 +26,19 @@
   "engines": {
     "node": ">=20"
   },
+  "devEngines": {
+    "packageManager": {
+      "name": "pnpm",
+      "version": "11.20.0"
+    }
+  },
+  "packageManager": "pnpm@11.20.0",
   "publishConfig": {
     "access": "public"
   },
   "scripts": {
     "start": "tsup --watch",
-    "dev": "npm --prefix demo install && npm --prefix demo run dev",
+    "dev": "pnpm --dir demo run dev",
     "build": "tsup",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -39,10 +46,9 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint . && prettier --check .",
     "format": "prettier --write .",
-    "prepare": "npm run build",
-    "prepublishOnly": "npm run lint && npm run typecheck && npm test",
-    "release": "npm run build && npm publish",
-    "netlify-build": "cd demo && npm install && npm run build"
+    "prepare": "pnpm run build",
+    "prepublishOnly": "pnpm run lint && pnpm run typecheck && pnpm test",
+    "release": "pnpm run build && pnpm publish"
   },
   "peerDependencies": {
     "react": ">=18"

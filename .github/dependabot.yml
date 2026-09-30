@@ -1,9 +1,13 @@
 version: 2
 updates:
+  # The `npm` ecosystem also covers pnpm.
   - package-ecosystem: npm
     directory: /
     schedule:
       interval: weekly
+    # pnpm refuses versions published less than a day ago (minimumReleaseAge).
+    cooldown:
+      default-days: 1
     groups:
       dev-dependencies:
         dependency-type: development
@@ -11,6 +15,8 @@ updates:
     directory: /demo
     schedule:
       interval: weekly
+    cooldown:
+      default-days: 1
     groups:
       demo-dependencies:
         patterns:

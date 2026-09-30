@@ -5,3 +5,9 @@ node_modules
 .history
 dist
 /coverage
+
+# pnpm is the only supported package manager; keep other tools' lockfiles out.
+package-lock.json
+yarn.lock
+bun.lock
+bun.lockb

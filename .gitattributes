@@ -1,5 +1,5 @@
 # Normalize line endings to LF for all text files,
-# so `npm run lint` / `npm run format` behave identically
+# so `pnpm lint` / `pnpm format` behave identically
 # on Windows (core.autocrlf) and Linux/CI.
 * text=auto eol=lf
 
