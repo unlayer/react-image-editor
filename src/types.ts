@@ -135,7 +135,10 @@ export interface ImageEditorProps {
   onCancel?(): void;
   /** Called when the image fails to load into the canvas (decode/CORS/404). */
   onLoadError?(): void;
-  /** Called when the embed reports an image change. Does not export the image. */
+  /**
+   * Called when the embed reports an image change. Does not export the image.
+   * Requires embed support; the default CDN editor 2.13.0 does not emit it yet.
+   */
   onChange?(): void;
 }
 

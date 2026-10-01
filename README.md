@@ -68,9 +68,9 @@ The component works out of the box in React Server Components environments (e.g.
 
 The proposed `onChange` prop forwards notifications from the underlying editor without polling or exporting the image. Updating the handler does not remount the editor. Notifications from a cancelled mount are ignored.
 
-**Compatibility:** the default CDN editor, version 2.13.0, does not emit this callback yet. This API needs a corresponding change in the underlying editor before it can replace polling. Until that support is released, `onChange` will not fire with the default embed.
+**Compatibility:** the default CDN editor, version 2.13.0, does not emit this callback. The underlying editor needs to add support before `onChange` can replace polling.
 
-The intended event covers changes to the visible image, including drawing, adjustments, undo, redo, and resets. The embed must define when notifications fire during a stroke and when the updated image is available through `getImage()`. Tool selection and viewport changes should not emit image change notifications. Applications can throttle their own snapshots without requiring an export on every event.
+The proposed event covers changes to the visible image, including drawing, adjustments, undo, redo, and resets. The embed must define its timing during brush strokes and when `getImage()` reflects the change. Tool selection and viewport changes should not trigger it. Applications control snapshot timing and throttling.
 
 ## Editor instance (ref)
 
