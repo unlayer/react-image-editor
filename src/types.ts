@@ -65,6 +65,8 @@ export interface MountOptions {
    * proxy/URL, a 404, or a decode error).
    */
   onLoadError?: () => void;
+  /** Proposed image change notification. Requires support in the embed's mount API. */
+  onChange?: () => void;
 }
 
 /**
@@ -89,7 +91,7 @@ export interface ImageEditorInstance {
  */
 export type ImageEditorOptions = Omit<
   MountOptions,
-  'container' | 'image' | 'onSave' | 'onCancel' | 'onLoadError'
+  'container' | 'image' | 'onSave' | 'onCancel' | 'onLoadError' | 'onChange'
 >;
 
 export interface ImageEditorProps {
@@ -133,6 +135,8 @@ export interface ImageEditorProps {
   onCancel?(): void;
   /** Called when the image fails to load into the canvas (decode/CORS/404). */
   onLoadError?(): void;
+  /** Called when the embed reports an image change. Does not export the image. */
+  onChange?(): void;
 }
 
 export interface ImageEditorRef {

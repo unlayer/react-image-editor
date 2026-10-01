@@ -61,7 +61,16 @@ The component works out of the box in React Server Components environments (e.g.
 | `onSave`       | `({ dataUrl, blob }) => void` | Called when the user saves the edited image.                                                                                                                                           |
 | `onCancel`     | `() => void`                  | Called when the user cancels editing.                                                                                                                                                  |
 | `onLoadError`  | `() => void`                  | Called when the image fails to load into the canvas (CORS, 404, decode error).                                                                                                         |
+| `onChange`     | `() => void`                  | Forwards image change notifications from an embed that supports `MountOptions.onChange`. See the compatibility note below.                                                             |
 | `onError`      | `(error: Error) => void`      | Wrapper-level failures: embed script load, editor creation, or image reset. Falls back to `console.error` when absent.                                                                 |
+
+## Image change notifications
+
+The proposed `onChange` prop forwards notifications from the underlying editor without polling or exporting the image. Updating the handler does not remount the editor. Notifications from a cancelled mount are ignored.
+
+**Compatibility:** the default CDN editor, version 2.13.0, does not emit this callback yet. This API needs a corresponding change in the underlying editor before it can replace polling. Until that support is released, `onChange` will not fire with the default embed.
+
+The intended event covers changes to the visible image, including drawing, adjustments, undo, redo, and resets. The embed must define when notifications fire during a stroke and when the updated image is available through `getImage()`. Tool selection and viewport changes should not emit image change notifications. Applications can throttle their own snapshots without requiring an export on every event.
 
 ## Editor instance (ref)
 

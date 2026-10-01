@@ -123,6 +123,9 @@ function ImageEditorInner(
           onSave: (result) => latestPropsRef.current.onSave?.(result),
           onCancel: () => latestPropsRef.current.onCancel?.(),
           onLoadError: () => latestPropsRef.current.onLoadError?.(),
+          onChange: () => {
+            if (!cancelled) latestPropsRef.current.onChange?.();
+          },
         });
 
         if (cancelled) {
