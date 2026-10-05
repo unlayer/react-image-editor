@@ -9,8 +9,9 @@ allowBuilds:
   # optimization); @esbuild/<platform> already ships as an optional dependency.
   esbuild: false
 
-# devEngines.packageManager in package.json is what makes `npm install` and
-# `npm run` refuse to run here. Left at its default, pnpm would also record its
+# devEngines.packageManager in package.json and demo/package.json is what makes
+# `npm install` and `npm run` refuse to run in either folder (npm treats demo/
+# as a separate project). Left at its default, pnpm would also record its
 # own version in pnpm-lock.yaml as a second YAML document, which GitHub's
 # dependency graph can't read yet, silently dropping Dependabot alerts.
 # `ignore` keeps the lockfile single-document; packageManager still pins pnpm.

@@ -3,6 +3,12 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "devEngines": {
+    "packageManager": {
+      "name": "pnpm",
+      "version": "11.20.0"
+    }
+  },
   "scripts": {
     "dev": "vite",
     "typecheck": "tsc --noEmit",
