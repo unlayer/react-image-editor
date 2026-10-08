@@ -145,8 +145,15 @@ it('passes every documented option through to createEditor unchanged', async () 
   await flush();
 
   const received = mountOptionsOf();
-  const { container, image, onSave, onCancel, onLoadError, ...passedThrough } =
-    received;
+  const {
+    container,
+    image,
+    onSave,
+    onCancel,
+    onLoadError,
+    onChange,
+    ...passedThrough
+  } = received;
   expect(passedThrough).toEqual(options);
   // Nested configs arrive by reference, not a lossy copy.
   expect(received.features).toBe(options.features);
@@ -416,6 +423,60 @@ it('always invokes the latest callbacks', async () => {
 
   expect(secondOnSave).toHaveBeenCalledWith(payload);
   expect(firstOnSave).not.toHaveBeenCalled();
+});
+
+it('uses the latest onChange handler without remounting or exporting', async () => {
+  const first = vi.fn();
+  const second = vi.fn();
+  const { rerender } = render(<ImageEditor image="img-a" />);
+  await flush();
+
+  const notify = mountOptionsOf().onChange!;
+  expect(() => notify()).not.toThrow();
+
+  rerender(<ImageEditor image="img-a" onChange={first} />);
+  notify();
+  expect(first).toHaveBeenCalledTimes(1);
+
+  rerender(<ImageEditor image="img-a" onChange={second} />);
+  notify();
+  notify();
+  expect(second).toHaveBeenCalledTimes(2);
+  expect(first).toHaveBeenCalledTimes(1);
+
+  rerender(<ImageEditor image="img-a" />);
+  notify();
+  expect(second).toHaveBeenCalledTimes(2);
+  expect(createEditor).toHaveBeenCalledTimes(1);
+  expect(mockInstance.getImage).not.toHaveBeenCalled();
+  expect(mockInstance.hasChanges).not.toHaveBeenCalled();
+});
+
+it('ignores change notifications from cancelled mounts', async () => {
+  const pending = defer<ImageEditorInstance>();
+  createEditor.mockImplementationOnce(() => pending.promise);
+  const onChange = vi.fn();
+  const { rerender, unmount } = render(
+    <ImageEditor image="img-a" options={{ projectId: 1 }} onChange={onChange} />
+  );
+  await flush();
+  const oldNotify = mountOptionsOf().onChange!;
+
+  rerender(
+    <ImageEditor image="img-a" options={{ projectId: 2 }} onChange={onChange} />
+  );
+  oldNotify();
+  expect(onChange).not.toHaveBeenCalled();
+
+  pending.resolve(mockInstance as unknown as ImageEditorInstance);
+  await flush();
+  const notify = mountOptionsOf(1).onChange!;
+  notify();
+  expect(onChange).toHaveBeenCalledTimes(1);
+
+  unmount();
+  notify();
+  expect(onChange).toHaveBeenCalledTimes(1);
 });
 
 it('applies minHeight and style to the container', async () => {

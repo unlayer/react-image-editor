@@ -61,7 +61,16 @@ The component works out of the box in React Server Components environments (e.g.
 | `onSave`       | `({ dataUrl, blob }) => void` | Called when the user saves the edited image.                                                                                                                                           |
 | `onCancel`     | `() => void`                  | Called when the user cancels editing.                                                                                                                                                  |
 | `onLoadError`  | `() => void`                  | Called when the image fails to load into the canvas (CORS, 404, decode error).                                                                                                         |
+| `onChange`     | `() => void`                  | Forwards image change notifications from an embed that supports `MountOptions.onChange`. See the compatibility note below.                                                             |
 | `onError`      | `(error: Error) => void`      | Wrapper-level failures: embed script load, editor creation, or image reset. Falls back to `console.error` when absent.                                                                 |
+
+## Image change notifications
+
+The proposed `onChange` prop forwards notifications from the underlying editor without polling or exporting the image. Updating the handler does not remount the editor. Notifications from a cancelled mount are ignored.
+
+**Compatibility:** the default CDN editor, version 2.13.0, does not emit this callback. The underlying editor needs to add support before `onChange` can replace polling.
+
+The proposed event covers changes to the visible image, including drawing, adjustments, undo, redo, and resets. The embed must define its timing during brush strokes and when `getImage()` reflects the change. Tool selection and viewport changes should not trigger it. Applications control snapshot timing and throttling.
 
 ## Editor instance (ref)
 
