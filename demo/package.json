@@ -16,7 +16,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@unlayer/types": "1.448.0",
+    "@unlayer/types": "1.516.0",
     "react": "19.2.7",
     "react-dom": "19.2.7"
   },
