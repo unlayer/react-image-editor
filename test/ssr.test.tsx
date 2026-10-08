@@ -49,7 +49,7 @@ it('renders on the server with every prop set', () => {
 // The 'use client' banner comes from tsup config, which nothing else
 // checks — a bundler or config change could silently drop it and every
 // existing test would still pass. dist/ exists in every CI job, because
-// `npm ci` runs the `prepare` script and that builds; the skip is only for
+// `pnpm install` runs the `prepare` script and that builds; the skip is only for
 // a local run before anyone has built.
 const dist = (file: string) => resolve(__dirname, '..', 'dist', file);
 const built = existsSync(dist('index.mjs'));

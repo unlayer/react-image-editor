@@ -11,15 +11,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      # Installs the pnpm version pinned by `packageManager` in package.json.
+      - uses: pnpm/action-setup@v6
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
-      - run: npm ci
-      - run: npm run lint
-      - run: npm run typecheck
-      - run: npm run build
-      - run: npm run test:coverage
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run lint
+      - run: pnpm run typecheck
+      - run: pnpm run build
+      - run: pnpm run test:coverage
       - uses: codecov/codecov-action@v5
         with:
           files: coverage/lcov.info
@@ -31,16 +33,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v6
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
-      # The demo aliases the package to ../src, so the root install has to
-      # exist for its dependencies to resolve.
-      - run: npm ci
-      - run: npm --prefix demo ci
-      - run: npm --prefix demo run typecheck
-      - run: npm --prefix demo run build
+          cache: pnpm
+      # The demo is a workspace package, so the root install covers it and the
+      # ../src it aliases.
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --dir demo run typecheck
+      - run: pnpm --dir demo run build
 
   test:
     name: Test (Node ${{ matrix.node }}, React ${{ matrix.react }})
@@ -52,10 +54,17 @@ jobs:
         react: [18, 19]
     steps:
       - uses: actions/checkout@v4
+      # pnpm 11 needs Node 22.13+. The standalone build bundles its own Node,
+      # so it also runs on the Node 20 entries while the tests themselves run
+      # on the matrix Node.
+      - uses: pnpm/action-setup@v6
+        with:
+          standalone: true
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node }}
-          cache: npm
-      - run: npm ci
-      - run: npm install --no-save react@${{ matrix.react }} react-dom@${{ matrix.react }}
-      - run: npm test
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      # Swaps React in this job's checkout only; nothing is committed.
+      - run: pnpm add --save-dev --workspace-root react@${{ matrix.react }} react-dom@${{ matrix.react }}
+      - run: pnpm test
