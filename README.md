@@ -57,6 +57,7 @@ The component works out of the box in React Server Components environments (e.g.
 | `style`        | `CSSProperties`               | Styles applied to the container div. Overrides the default `flex: 1`.                                                                                                                  |
 | `wrapperStyle` | `CSSProperties`               | Styles applied to the outer wrapper div, which owns `minHeight` and the flex layout. Set this to drop the editor into a non-flex layout.                                               |
 | `ariaLabel`    | `string`                      | Accessible name for the editor region. Defaults to `'Image editor'`.                                                                                                                   |
+| `placeholder`  | `ReactNode`                   | Rendered centred over the container until the editor mounts — a spinner or skeleton for the embed's cold-cache load. Stays visible if the mount fails.                                 |
 | `onLoad`       | `(editor) => void`            | Called with the editor instance once it is mounted.                                                                                                                                    |
 | `onSave`       | `({ dataUrl, blob }) => void` | Called when the user saves the edited image.                                                                                                                                           |
 | `onCancel`     | `() => void`                  | Called when the user cancels editing.                                                                                                                                                  |
@@ -87,6 +88,16 @@ const dataUrl = editorRef.current?.editor?.getImage();
 | `options.theme`, `options.locale`, `options.translations`    | Applied via `updateOptions()` — no remount, editor state preserved.                                                                      |
 | Any other `options` key                                      | Full remount — the editor is destroyed and recreated with the new configuration.                                                         |
 | `onSave` / `onCancel` / `onLoadError` / `onLoad` / `onError` | Always call the latest handler; changing them never remounts.                                                                            |
+
+## Loading state
+
+The embed script and its versioned bundle are fetched at mount. On a cold cache that is a visible gap, so pass a `placeholder` to fill it:
+
+```jsx
+<ImageEditor image={url} placeholder={<Spinner />} />
+```
+
+It is rendered centred over the container and removed once the editor is live. It is **not** removed when the mount fails, so a failed load never leaves a blank box — pair it with `onError` to swap in a failure message.
 
 ## Error handling
 
