@@ -48,20 +48,22 @@ The component works out of the box in React Server Components environments (e.g.
 
 ## Props
 
-| Prop           | Type                          | Description                                                                                                                                                                            |
-| -------------- | ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `image`        | `string` (required)           | Image URL or base64 data URL to edit.                                                                                                                                                  |
-| `options`      | `ImageEditorOptions`          | Editor configuration: `projectId`, `user`, `features`, `theme`, `locale`, `translations`, `env`, `offline`, `licenseUrl`, `defaultPrompt`, `autoSubmitPrompt`, `aiAssistantOpenState`. |
-| `editorId`     | `string`                      | id for the container div. Cosmetic — the editor mounts by element reference.                                                                                                           |
-| `minHeight`    | `number \| string`            | Minimum height of the editor container. Defaults to `500`.                                                                                                                             |
-| `style`        | `CSSProperties`               | Styles applied to the container div. Overrides the default `flex: 1`.                                                                                                                  |
-| `wrapperStyle` | `CSSProperties`               | Styles applied to the outer wrapper div, which owns `minHeight` and the flex layout. Set this to drop the editor into a non-flex layout.                                               |
-| `ariaLabel`    | `string`                      | Accessible name for the editor region. Defaults to `'Image editor'`.                                                                                                                   |
-| `onLoad`       | `(editor) => void`            | Called with the editor instance once it is mounted.                                                                                                                                    |
-| `onSave`       | `({ dataUrl, blob }) => void` | Called when the user saves the edited image.                                                                                                                                           |
-| `onCancel`     | `() => void`                  | Called when the user cancels editing.                                                                                                                                                  |
-| `onLoadError`  | `() => void`                  | Called when the image fails to load into the canvas (CORS, 404, decode error).                                                                                                         |
-| `onError`      | `(error: Error) => void`      | Wrapper-level failures: embed script load, editor creation, or image reset. Falls back to `console.error` when absent.                                                                 |
+| Prop              | Type                                       | Description                                                                                                                                                                            |
+| ----------------- | ------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `image`           | `string` (required)                        | Image URL or base64 data URL to edit.                                                                                                                                                  |
+| `options`         | `ImageEditorOptions`                       | Editor configuration: `projectId`, `user`, `features`, `theme`, `locale`, `translations`, `env`, `offline`, `licenseUrl`, `defaultPrompt`, `autoSubmitPrompt`, `aiAssistantOpenState`. |
+| `editorId`        | `string`                                   | id for the container div. Cosmetic — the editor mounts by element reference.                                                                                                           |
+| `minHeight`       | `number \| string`                         | Minimum height of the editor container. Defaults to `500`.                                                                                                                             |
+| `style`           | `CSSProperties`                            | Styles applied to the container div. Overrides the default `flex: 1`.                                                                                                                  |
+| `wrapperStyle`    | `CSSProperties`                            | Styles applied to the outer wrapper div, which owns `minHeight` and the flex layout. Set this to drop the editor into a non-flex layout.                                               |
+| `ariaLabel`       | `string`                                   | Accessible name for the editor region. Defaults to `'Image editor'`.                                                                                                                   |
+| `loadingFallback` | `ReactNode`                                | Custom UI displayed while the embed script and editor initialize.                                                                                                                      |
+| `errorFallback`   | `ReactNode \| (error, retry) => ReactNode` | Custom UI displayed when initialization fails. A render function receives the error and retry callback.                                                                                |
+| `onLoad`          | `(editor) => void`                         | Called with the editor instance once it is mounted.                                                                                                                                    |
+| `onSave`          | `({ dataUrl, blob }) => void`              | Called when the user saves the edited image.                                                                                                                                           |
+| `onCancel`        | `() => void`                               | Called when the user cancels editing.                                                                                                                                                  |
+| `onLoadError`     | `() => void`                               | Called when the image fails to load into the canvas (CORS, 404, decode error).                                                                                                         |
+| `onError`         | `(error: Error) => void`                   | Wrapper-level failures: embed script load, editor creation, or image reset. Falls back to `console.error` when absent.                                                                 |
 
 ## Editor instance (ref)
 
@@ -87,6 +89,25 @@ const dataUrl = editorRef.current?.editor?.getImage();
 | `options.theme`, `options.locale`, `options.translations`    | Applied via `updateOptions()` — no remount, editor state preserved.                                                                      |
 | Any other `options` key                                      | Full remount — the editor is destroyed and recreated with the new configuration.                                                         |
 | `onSave` / `onCancel` / `onLoadError` / `onLoad` / `onError` | Always call the latest handler; changing them never remounts.                                                                            |
+
+## Loading and error UI
+
+The editor shows a built-in loading message while its CDN script and instance
+initialize, and a built-in retryable error message if initialization fails. Use
+fallbacks to match your application's UI:
+
+```tsx
+<ImageEditor
+  image={url}
+  loadingFallback={<Spinner label="Loading editor" />}
+  errorFallback={(error, retry) => (
+    <section role="alert">
+      <p>Could not load the editor: {error.message}</p>
+      <button onClick={retry}>Try again</button>
+    </section>
+  )}
+/>
+```
 
 ## Error handling
 

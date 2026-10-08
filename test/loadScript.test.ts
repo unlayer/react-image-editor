@@ -131,6 +131,22 @@ it('times out on a reused tag that never fires (already-errored host tag)', asyn
   }
 });
 
+it('times out and cleans up when a newly injected script never settles', async () => {
+  vi.useFakeTimers();
+  try {
+    const promise = loadScript();
+    expect(scriptTags()).toHaveLength(1);
+
+    const rejection = expect(promise).rejects.toThrow(/Timed out/);
+    vi.advanceTimersByTime(30_000);
+    await rejection;
+
+    expect(scriptTags()).toHaveLength(0);
+  } finally {
+    vi.useRealTimers();
+  }
+});
+
 it('resetLoader rejects a still-pending load so waiters fail fast', async () => {
   const pending = loadScript();
   expect(scriptTags()).toHaveLength(1);
