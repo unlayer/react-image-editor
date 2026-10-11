@@ -104,10 +104,18 @@ export interface ImageEditorProps {
   /** Styles applied to the container div. Overrides the default `flex: 1`. */
   style?: CSSProperties;
   /**
+   * Class name for the container div (the element the editor mounts into).
+   * Combine with `editorId` (e.g. `#my-editor`) to target the editor from a
+   * stylesheet and rearrange its chrome below a breakpoint.
+   */
+  className?: string;
+  /**
    * Styles applied to the outer wrapper div, which owns `minHeight` and the
    * flex layout. Set this to drop the editor into a non-flex layout.
    */
   wrapperStyle?: CSSProperties;
+  /** Class name for the outer wrapper div. */
+  wrapperClassName?: string;
   /**
    * Accessible name for the editor region. The embed renders no landmark
    * and no name of its own. Defaults to 'Image editor'.

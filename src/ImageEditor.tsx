@@ -20,7 +20,9 @@ function ImageEditorInner(
     scriptUrl,
     minHeight = 500,
     style = {},
+    className,
     wrapperStyle = {},
+    wrapperClassName,
     ariaLabel = 'Image editor',
   } = props;
 
@@ -213,11 +215,21 @@ function ImageEditorInner(
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editor, updatableKey]);
 
+  // The editor's content is enormously wide: the sticker and shape panels
+  // lay hundreds of tiles out in rows that never wrap, well over 10,000px of
+  // min-content width. A flex item refuses to shrink below its content
+  // unless its min-width is 0, so without the two minWidth defaults below the
+  // editor stretches whatever contains it — on a phone the page grows a
+  // horizontal scrollbar and the tool rail is pushed out of view — instead of
+  // scrolling inside the panel. With them, any container constrains the
+  // editor and responsive tweaks are a breakpoint away.
   return (
     <div
+      className={wrapperClassName}
       style={{
         flex: 1,
         display: 'flex',
+        minWidth: 0,
         minHeight: minHeight,
         ...wrapperStyle,
       }}
@@ -225,13 +237,14 @@ function ImageEditorInner(
       <div
         id={editorId}
         ref={containerRef}
+        className={className}
         // The embed renders an unlabelled generic div inside, so without a
         // role and a name the whole editing surface is anonymous to
         // assistive tech.
         role="region"
         aria-label={ariaLabel}
-        // flex first: a default the consumer's style can override.
-        style={{ flex: 1, ...style }}
+        // flex and minWidth first: defaults the consumer's style can override.
+        style={{ flex: 1, minWidth: 0, ...style }}
       />
     </div>
   );

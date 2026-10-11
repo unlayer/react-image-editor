@@ -461,6 +461,42 @@ it('lets style override the container default and wrapperStyle reach the wrapper
   expect(wrapper.style.minHeight).toBe('0px');
 });
 
+it('does not let the editor widen its container', async () => {
+  render(<ImageEditor editorId="narrow" image="img-a" />);
+  await flush();
+
+  const container = document.querySelector('#narrow') as HTMLElement;
+  const wrapper = container.parentElement as HTMLElement;
+
+  // Both are flex items, and a flex item defaults to min-width:auto — it
+  // refuses to shrink below its content. The editor's content is far wider
+  // than any phone (the sticker and shape panels lay hundreds of tiles out
+  // in rows that never wrap), so without an explicit 0 the editor stretches
+  // its container instead of fitting it.
+  expect(container.style.minWidth).toBe('0px');
+  expect(wrapper.style.minWidth).toBe('0px');
+});
+
+it('reaches both elements with a class name, and lets style override minWidth', async () => {
+  render(
+    <ImageEditor
+      editorId="hooked"
+      image="img-a"
+      className="my-editor"
+      wrapperClassName="my-editor-shell"
+      style={{ minWidth: 320 }}
+    />
+  );
+  await flush();
+
+  const container = document.querySelector('#hooked') as HTMLElement;
+  const wrapper = container.parentElement as HTMLElement;
+  expect(container.className).toBe('my-editor');
+  expect(wrapper.className).toBe('my-editor-shell');
+  // The min-width:0 above is a default, not a hardcoded override.
+  expect(container.style.minWidth).toBe('320px');
+});
+
 it('gives the editor region an accessible name, overridable via ariaLabel', async () => {
   const { rerender } = render(<ImageEditor editorId="a11y" image="img-a" />);
   await flush();
