@@ -192,3 +192,42 @@ it('resetLoader removes the global, the tag, and the cached promise', async () =
   fire(scriptTags()[0], 'load');
   await retry;
 });
+
+it('resetLoader leaves a host-injected tag and its global alone', async () => {
+  // The host page loaded embed.js itself and other consumers may be using
+  // the global — tearing it down here would break them.
+  const hostTag = document.createElement('script');
+  hostTag.src = 'https://cdn.unlayer.com/image-editor/embed.js';
+  document.head.appendChild(hostTag);
+
+  const promise = loadScript();
+  const embed = mockEmbed();
+  window.ImageEditor = embed;
+  fire(hostTag, 'load');
+  await promise;
+
+  resetLoader();
+
+  expect(window.ImageEditor).toBe(embed);
+  expect(scriptTags()).toEqual([hostTag]);
+});
+
+it('resetLoader rejects waiters on a reused host tag without removing it', async () => {
+  const hostTag = document.createElement('script');
+  hostTag.src = 'https://cdn.unlayer.com/image-editor/embed.js';
+  document.head.appendChild(hostTag);
+
+  const pending = loadScript();
+  const rejection = expect(pending).rejects.toThrow(/loader was reset/);
+
+  resetLoader();
+  await rejection;
+
+  // Our cache is cleared, but the host's still-loading tag is untouched.
+  expect(scriptTags()).toEqual([hostTag]);
+});
+
+it('resetLoader is a no-op when nothing was ever loaded', () => {
+  expect(() => resetLoader()).not.toThrow();
+  expect(scriptTags()).toHaveLength(0);
+});
