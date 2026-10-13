@@ -119,6 +119,13 @@ export interface ImageEditorProps {
    * globally, so do not mix different scriptUrls across components.
    */
   scriptUrl?: string;
+  /**
+   * How long to wait, in ms, for an embed script tag the host page already
+   * placed on the page to become ready. Only applies when such a tag is
+   * reused — a tag this component injects resolves or errors on its own.
+   * Defaults to 30000. Changing it never remounts the editor.
+   */
+  reusedTagTimeoutMs?: number;
   /** Called with the editor instance once it is mounted. */
   onLoad?(editor: ImageEditorInstance): void;
   /**
