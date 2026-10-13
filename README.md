@@ -44,24 +44,65 @@ const App = () => {
 };
 ```
 
+### TypeScript
+
+Every type is exported from the package root:
+
+```tsx
+import { useRef } from 'react';
+import ImageEditor, {
+  type ImageEditorOptions,
+  type ImageEditorRef,
+  type ImageEditorSaveResult,
+} from '@unlayer/react-image-editor';
+
+const options: ImageEditorOptions = { theme: 'dark', locale: 'fr' };
+
+export function Editor({ image }: { image: string }) {
+  const editorRef = useRef<ImageEditorRef>(null);
+
+  const save = (result: ImageEditorSaveResult) => {
+    console.info(result.dataUrl, result.blob);
+  };
+
+  return (
+    <ImageEditor
+      ref={editorRef}
+      image={image}
+      options={options}
+      onSave={save}
+    />
+  );
+}
+```
+
+| Type                    | What it is                                                  |
+| ----------------------- | ----------------------------------------------------------- |
+| `ImageEditorProps`      | The component's full prop type.                             |
+| `ImageEditorOptions`    | The `options` prop — everything the component does not own. |
+| `ImageEditorRef`        | The ref shape, `{ editor }`.                                |
+| `ImageEditorInstance`   | The editor instance and its methods.                        |
+| `ImageEditorSaveResult` | `{ dataUrl, blob }`, passed to `onSave`.                    |
+
 The component works out of the box in React Server Components environments (e.g. Next.js App Router) — it ships with the `'use client'` directive and touches the DOM only inside effects.
 
 ## Props
 
-| Prop           | Type                          | Description                                                                                                                                                                            |
-| -------------- | ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `image`        | `string` (required)           | Image URL or base64 data URL to edit.                                                                                                                                                  |
-| `options`      | `ImageEditorOptions`          | Editor configuration: `projectId`, `user`, `features`, `theme`, `locale`, `translations`, `env`, `offline`, `licenseUrl`, `defaultPrompt`, `autoSubmitPrompt`, `aiAssistantOpenState`. |
-| `editorId`     | `string`                      | id for the container div. Cosmetic — the editor mounts by element reference.                                                                                                           |
-| `minHeight`    | `number \| string`            | Minimum height of the editor container. Defaults to `500`.                                                                                                                             |
-| `style`        | `CSSProperties`               | Styles applied to the container div. Overrides the default `flex: 1`.                                                                                                                  |
-| `wrapperStyle` | `CSSProperties`               | Styles applied to the outer wrapper div, which owns `minHeight` and the flex layout. Set this to drop the editor into a non-flex layout.                                               |
-| `ariaLabel`    | `string`                      | Accessible name for the editor region. Defaults to `'Image editor'`.                                                                                                                   |
-| `onLoad`       | `(editor) => void`            | Called with the editor instance once it is mounted.                                                                                                                                    |
-| `onSave`       | `({ dataUrl, blob }) => void` | Called when the user saves the edited image.                                                                                                                                           |
-| `onCancel`     | `() => void`                  | Called when the user cancels editing.                                                                                                                                                  |
-| `onLoadError`  | `() => void`                  | Called when the image fails to load into the canvas (CORS, 404, decode error).                                                                                                         |
-| `onError`      | `(error: Error) => void`      | Wrapper-level failures: embed script load, editor creation, or image reset. Falls back to `console.error` when absent.                                                                 |
+| Prop           | Type                          | Description                                                                                                                                                                                                     |
+| -------------- | ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `image`        | `string` (required)           | Image URL or base64 data URL to edit.                                                                                                                                                                           |
+| `options`      | `ImageEditorOptions`          | Editor configuration: `projectId`, `user`, `features`, `theme`, `locale`, `translations`, `env`, `offline`, `licenseUrl`, `defaultPrompt`, `autoSubmitPrompt`, `aiAssistantOpenState`.                          |
+| `editorId`     | `string`                      | id for the container div. Cosmetic — the editor mounts by element reference.                                                                                                                                    |
+| `minHeight`    | `number \| string`            | Minimum height of the editor container. Defaults to `500`.                                                                                                                                                      |
+| `style`        | `CSSProperties`               | Styles applied to the container div. Overrides the default `flex: 1`.                                                                                                                                           |
+| `wrapperStyle` | `CSSProperties`               | Styles applied to the outer wrapper div, which owns `minHeight` and the flex layout. Set this to drop the editor into a non-flex layout.                                                                        |
+| `ariaLabel`    | `string`                      | Accessible name for the editor region. Defaults to `'Image editor'`.                                                                                                                                            |
+| `scriptUrl`    | `string`                      | Override the embed script URL, e.g. to pin an environment. One embed per page: the first loader to run installs `window.ImageEditor` and wins globally, so do not mix different `scriptUrl`s across components. |
+| `onLoad`       | `(editor) => void`            | Called with the editor instance once it is mounted.                                                                                                                                                             |
+| `onSave`       | `({ dataUrl, blob }) => void` | Called when the user saves the edited image.                                                                                                                                                                    |
+| `onCancel`     | `() => void`                  | Called when the user cancels editing.                                                                                                                                                                           |
+| `onLoadError`  | `() => void`                  | Called when the image fails to load into the canvas (CORS, 404, decode error).                                                                                                                                  |
+| `onError`      | `(error: Error) => void`      | Wrapper-level failures: embed script load, editor creation, or image reset. Falls back to `console.error` when absent.                                                                                          |
 
 ## Editor instance (ref)
 
@@ -190,6 +231,73 @@ The editor includes an optional AI Assistant for chat-based edits. It requires a
   options={{
     projectId: 1234, // get from console
     features: { ai: { enabled: true, assistant: true } },
+  }}
+/>
+```
+
+## Self-hosting the editor assets
+
+The editor loads its stickers, frames and text-tool fonts from the CDN, resolving each one against a base URL. Point that at your own copy with `env.IMAGE_EDITOR_BASE_URL`, and pin the embed script with `scriptUrl`:
+
+```jsx
+<ImageEditor
+  image={url}
+  scriptUrl="/vendor/image-editor/embed.js"
+  options={{
+    env: {
+      // Assets are fetched from `${IMAGE_EDITOR_BASE_URL}/assets/<path>`.
+      IMAGE_EDITOR_BASE_URL: '/vendor/image-editor',
+      API_V2_BASE_URL: 'https://api.example.com/v2',
+      API_V3_BASE_URL: 'https://api.example.com/builder/v3',
+    },
+  }}
+/>
+```
+
+Copy the `assets/` directory from `https://cdn.unlayer.com/image-editor/<version>/` to that location. This keeps asset traffic on your own infrastructure while the editor still resolves assets **by URL** — it is not the same thing as offline mode, and the two are configured differently.
+
+`env` is a remount-tier option — set it before mounting rather than toggling it live.
+
+## Offline mode
+
+`offline: true` skips all external API calls. Entitlements come from `licenseUrl` instead of the API, and AI features are unavailable.
+
+> **`offline` also turns off URL-based asset loading.** Setting it together with `IMAGE_EDITOR_BASE_URL` does not give you self-hosted assets — the base URL is ignored for assets, every sticker and frame resolves to an empty string, and the text tool's fonts fall back. Offline mode needs an explicit asset map instead.
+
+A working offline setup has three parts:
+
+**1. Serve the scripts yourself.** Offline means no CDN, so host `embed.js` and the versioned bundle locally and point `scriptUrl` at your copy.
+
+**2. Provide an asset map.** The bundle exposes `setAssetsMap`, which takes an object keyed by the asset paths the editor asks for (`images/stickers/…`, `images/frames/…`, `fonts/…`) and valued with anything the browser can load — a local URL or a `data:` URI. It must be set before the editor renders the panels that use those assets; the embed fires `image-editor-ready` once the bundle has registered:
+
+```jsx
+window.addEventListener(
+  'image-editor-ready',
+  () => {
+    window.__ImageEditorImpl__.setAssetsMap({
+      'images/stickers/beach/0.svg':
+        '/vendor/image-editor/assets/images/stickers/beach/0.svg',
+      'images/frames/art1/bottom.png':
+        '/vendor/image-editor/assets/images/frames/art1/bottom.png',
+      'fonts/TrashHand.ttf': '/vendor/image-editor/assets/fonts/TrashHand.ttf',
+      // …one entry per asset you want available offline
+    });
+  },
+  { once: true }
+);
+```
+
+Any path missing from the map resolves to an empty string, so build the map from the contents of the `assets/` directory rather than by hand — generating it at build time from a directory listing is the practical approach.
+
+**3. Expect system UI fonts.** Online, the editor injects a Google Fonts stylesheet for Inter and Open Sans. Offline that injection is skipped and the interface falls back to system fonts. Self-host those two families yourself if the fallback matters.
+
+```jsx
+<ImageEditor
+  image={url}
+  scriptUrl="/vendor/image-editor/embed.js"
+  options={{
+    offline: true,
+    licenseUrl: '/vendor/image-editor/license.json',
   }}
 />
 ```
